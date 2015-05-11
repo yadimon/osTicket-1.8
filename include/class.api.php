@@ -167,6 +167,7 @@ class API {
 class ApiController {
 
     var $apikey;
+    var $user;
 
     function requireApiKey() {
         # Validate the API key -- required to be sent via the X-API-Key
@@ -186,6 +187,25 @@ class ApiController {
             $this->apikey = API::lookupByKey($_SERVER['HTTP_X_API_KEY'], $_SERVER['REMOTE_ADDR']);
 
         return $this->apikey;
+    }
+
+    /**
+     * checks user login and password for authentication, save it to the private class var and return it
+     * @return AuthenticatedUser|null the user or null
+     */
+    function requireAuthUser() {
+        if (!$this->user && isset($_SERVER['HTTP_USER_NAME']) && isset($_SERVER['HTTP_USER_PW'])){
+            $username = $_SERVER['HTTP_USER_NAME'];
+            $userpw = $_SERVER['HTTP_USER_PW'];
+            //check login
+            $user = UserAuthenticationBackend::process($username, $userpw);
+
+            if ($user instanceof AuthenticatedUser){
+                $this->user = $user;
+            }
+        }
+
+        return $this->user;
     }
 
     /**
